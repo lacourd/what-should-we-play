@@ -1,5 +1,6 @@
 package com.lacourd.whatshouldweplay.config;
 
+import com.lacourd.whatshouldweplay.dao.UserDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
@@ -33,19 +34,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-
-    private final static List<UserDetails> APPLICATION_USERS = Arrays.asList(
-      new User(
-              "lacourd@icloud.com",
-              "password",
-              Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN"))
-      ),
-    new User(
-            "lacourd@me.com",
-            "password",
-            Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
-    )
-    );
+    private final UserDao userDao;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -86,12 +75,7 @@ public class SecurityConfig {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-                return APPLICATION_USERS
-                        .stream()
-                        .filter(u -> u.getUsername().equals(email))
-                        .findFirst()
-                        .orElseThrow(() -> new UsernameNotFoundException("No user was found"))
-                        ;
+                return userDao.findUserByEmail(email);
             }
         };
     }
